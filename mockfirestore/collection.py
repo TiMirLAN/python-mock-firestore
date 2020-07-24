@@ -13,6 +13,7 @@ class CollectionReference:
         self._data = data
         self._path = path
         self.parent = parent
+        self._select = tuple()
 
     def document(self, name: Optional[str] = None) -> DocumentReference:
         collection = get_by_path(self._data, self._path)
@@ -79,7 +80,18 @@ class CollectionReference:
             docs.append(self.document(key))
         return docs
 
+    def select(self, fields: Iterable[str]):
+        self._select = tuple(fields)
+        return self
+
     def stream(self, transaction=None) -> Iterable[DocumentSnapshot]:
         for key in sorted(get_by_path(self._data, self._path)):
             doc_snapshot = self.document(key).get()
-            yield doc_snapshot
+            if self._select:
+                data = {
+                    field: doc_snapshot.get(field) for field in self._select
+                }
+                yield DocumentSnapshot(doc_snapshot.reference, data)
+            else:
+                yield doc_snapshot
+

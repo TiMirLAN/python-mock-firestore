@@ -1,6 +1,6 @@
 import warnings
 from itertools import islice, tee
-from typing import Iterator, Any, Optional, List, Callable
+from typing import Iterator, Any, Optional, List, Callable, Iterable
 
 from mockfirestore.document import DocumentSnapshot
 from mockfirestore._helpers import T
@@ -51,6 +51,10 @@ class Query:
             doc_snapshots = islice(doc_snapshots, self._limit)
 
         return iter(doc_snapshots)
+
+    def select(self, fields: Iterable[str]):
+        self.parent.select(fields)
+        return self
 
     def get(self) -> Iterator[DocumentSnapshot]:
         warnings.warn('Query.get is deprecated, please use Query.stream',
